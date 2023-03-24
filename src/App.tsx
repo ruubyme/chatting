@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { getDatabase, ref, set } from "firebase/database";
+import { app } from "./firebase";
 
 function App() {
   const [name, setName] = useState<string>("");
@@ -11,7 +12,7 @@ function App() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const db = getDatabase();
+    const db = getDatabase(app);
     await set(ref(db, `users/${name}`), {
       name,
     });
