@@ -1,6 +1,11 @@
-import { useState } from "react";
-import { getDatabase, push, ref, set } from "firebase/database";
+import { useState, useEffect } from "react";
+import { getDatabase, onValue, push, ref, set, off } from "firebase/database";
 import { app } from "../firebase";
+
+type ChatRoom = {
+  id: string;
+  messages: Message[];
+};
 
 type Message = {
   name: string;
@@ -11,6 +16,8 @@ type Message = {
 type ChatProps = {
   name: string;
 };
+
+const db = getDatabase(app);
 
 const ChatRoom: React.FC<ChatProps> = ({ name }) => {
   const [message, setMessage] = useState<string>("");
@@ -23,18 +30,31 @@ const ChatRoom: React.FC<ChatProps> = ({ name }) => {
   async function handleMessageSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const db = getDatabase(app);
-    const newMessageRef = push(ref(db, `users/${name}/message`));
+    //const db = getDatabase(app);
+    const newMessageRef = push(ref(db, `room/messages`));
     const newMessage: Message = {
       name: name,
       text: message,
       timestamp: Date.now(),
     };
     await set(newMessageRef, newMessage);
-    setMessages((prevMessages) => [...prevMessages, { ...newMessage }]);
+    //setMessages((prevMessages) => [...prevMessages, { ...newMessage }]);
     setMessage("");
     console.log("메시지가 성공적으로 전송되었습니다.");
   }
+
+  const messagesRef = ref(db, "room/messages");
+
+  useEffect(() => {
+    onValue(messagesRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const messagesData: Message[] = Object.values(data);
+        setMessages(messagesData);
+      }
+    });
+    return () => off(messagesRef);
+  }, []);
 
   console.log(message);
 
@@ -44,8 +64,7 @@ const ChatRoom: React.FC<ChatProps> = ({ name }) => {
       <ul>
         {messages.map((message) => (
           <li key={message.timestamp}>
-            <strong>{message.name}: </strong>
-            {message.text}
+            {message.name}:{message.text}
             <span>({new Date(message.timestamp).toLocaleString()})</span>
           </li>
         ))}

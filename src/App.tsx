@@ -22,7 +22,7 @@ function App() {
     await set(ref(db, `users/${name}`), {
       name,
     });
-    setName("");
+    //setName("");
     setPage("chat"); //page state를 chat으로 업데이트
     console.log("정상적으로 등록되었습니다.");
   }
