@@ -1,7 +1,11 @@
 import { useState } from "react";
-import { getDatabase, ref, set } from "firebase/database";
+import { get, getDatabase, ref, set } from "firebase/database";
 import { app } from "./firebase";
 import ChatRoom from "./components/ChatRoom";
+
+interface User {
+  name: string;
+}
 
 function App() {
   const [name, setName] = useState<string>("");
@@ -22,7 +26,6 @@ function App() {
     setPage("chat"); //page state를 chat으로 업데이트
     console.log("정상적으로 등록되었습니다.");
   }
-
   if (page === "form") {
     return (
       <form onSubmit={handleSubmit}>

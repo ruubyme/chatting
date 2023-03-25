@@ -1,75 +1,68 @@
-import { useState, useEffect } from "react";
-import { getDatabase, ref, push, set, onValue } from "firebase/database";
+import { useState } from "react";
+import { getDatabase, push, ref, set } from "firebase/database";
 import { app } from "../firebase";
 
-interface Message {
+type Message = {
   name: string;
   text: string;
-  createdAt: Date;
-}
+  timestamp: number;
+};
 
-function ChatRoom({ name }: { name: string }) {
+type ChatProps = {
+  name: string;
+};
+
+const ChatRoom: React.FC<ChatProps> = ({ name }) => {
+  const [message, setMessage] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState<string>("");
-  const db = getDatabase(app);
-  const messagesRef = ref(db, `users/${name}/room/messages`);
 
-  useEffect(() => {
-    const messagesListener = onValue(messagesRef, (snapshot) => {
-      const messagesData = snapshot.val();
-      if (messagesData) {
-        const messagesList: Message[] = Object.keys(messagesData).map(
-          (key) => ({
-            name: messagesData[key].name,
-            text: messagesData[key].text,
-            createdAt: new Date(messagesData[key].createdAt),
-          })
-        );
-        setMessages(messagesList);
-      }
-    });
-  }, [name]);
+  function handleMessageChange(event: React.ChangeEvent<HTMLInputElement>) {
+    setMessage(event.target.value);
+  }
 
   async function handleMessageSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const messageData = {
-      name,
-      text: newMessage,
-      createdAt: new Date(),
+    const db = getDatabase(app);
+    const newMessageRef = push(ref(db, `users/${name}/message`));
+    const newMessage: Message = {
+      name: name,
+      text: message,
+      timestamp: Date.now(),
     };
-    await push(messagesRef, messageData);
-
-    console.log(messageData);
-
-    console.log(typeof name);
-
-    setNewMessage("");
+    await set(newMessageRef, newMessage);
+    setMessages((prevMessages) => [...prevMessages, { ...newMessage }]);
+    setMessage("");
+    console.log("메시지가 성공적으로 전송되었습니다.");
   }
+
+  console.log(message);
 
   return (
     <div>
-      <div>
-        {messages.map((message, index) => (
-          <div key={index}>
-            <span>{message.name}: </span>
-            <span>{message.text}</span>
-          </div>
+      <h1>{name}님의 채팅방</h1>
+      <ul>
+        {messages.map((message) => (
+          <li key={message.timestamp}>
+            <strong>{message.name}: </strong>
+            {message.text}
+            <span>({new Date(message.timestamp).toLocaleString()})</span>
+          </li>
         ))}
-      </div>
+      </ul>
       <form onSubmit={handleMessageSubmit}>
         <label>
           <input
             type="text"
-            placeholder="message"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+            placeholder="Message"
+            value={message}
+            onChange={handleMessageChange}
           />
         </label>
         <button type="submit">Send</button>
       </form>
     </div>
   );
-}
+};
 
 export default ChatRoom;
