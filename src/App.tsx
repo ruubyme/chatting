@@ -2,6 +2,52 @@ import { useState } from "react";
 import { get, getDatabase, ref, set } from "firebase/database";
 import { app } from "./firebase";
 import ChatRoom from "./components/ChatRoom";
+import styled, { createGlobalStyle } from "styled-components";
+
+//style
+
+const AppContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+`;
+
+const FormContainer = styled.form`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+`;
+
+const Name = styled.h1`
+  font-size: 20px;
+  width: 100px;
+`;
+
+const Input = styled.input`
+  padding: 8px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  margin-bottom: 16px;
+  width: 200px;
+`;
+
+const Button = styled.button`
+  padding: 8px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #ccc;
+  }
+`;
+
+//
 
 interface User {
   name: string;
@@ -28,13 +74,15 @@ function App() {
   }
   if (page === "form") {
     return (
-      <form onSubmit={handleSubmit}>
-        <label>
-          Name:
-          <input type="text" value={name} onChange={handleNameChange} />
-        </label>
-        <button type="submit">확인</button>
-      </form>
+      <AppContainer>
+        <FormContainer onSubmit={handleSubmit}>
+          <label>
+            <Name>Name</Name>
+            <Input type="text" value={name} onChange={handleNameChange} />
+          </label>
+          <Button type="submit">확인</Button>
+        </FormContainer>
+      </AppContainer>
     );
   } else if (page === "chat") {
     return <ChatRoom name={name} />;
